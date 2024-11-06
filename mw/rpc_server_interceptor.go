@@ -21,11 +21,11 @@ import (
 
 	"github.com/amazing-socrates/next-tools/checker"
 
+	"github.com/amazing-socrates/next-protocol/constant"
+	"github.com/amazing-socrates/next-protocol/errinfo"
 	"github.com/amazing-socrates/next-tools/errs"
 	"github.com/amazing-socrates/next-tools/log"
 	"github.com/amazing-socrates/next-tools/mw/specialerror"
-	"github.com/openimsdk/protocol/constant"
-	"github.com/openimsdk/protocol/errinfo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

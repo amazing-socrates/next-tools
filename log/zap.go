@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/amazing-socrates/next-protocol/constant"
 	"github.com/amazing-socrates/next-tools/mcontext"
-	"github.com/openimsdk/protocol/constant"
 )
 
 type LogFormatter interface {

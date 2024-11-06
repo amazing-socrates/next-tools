@@ -22,9 +22,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/amazing-socrates/next-protocol/constant"
 	"github.com/amazing-socrates/next-tools/apiresp"
 	"github.com/amazing-socrates/next-tools/errs"
-	"github.com/openimsdk/protocol/constant"
 )
 
 // CorsHandler gin cross-domain configuration.
