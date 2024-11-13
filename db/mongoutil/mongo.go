@@ -61,6 +61,7 @@ func NewMongoDB(ctx context.Context, config *Config) (*Client, error) {
 		return nil, err
 	}
 	opts := options.Client().ApplyURI(config.Uri).SetMaxPoolSize(uint64(config.MaxPoolSize))
+	opts.SetMinPoolSize(uint64(config.MaxPoolSize))
 	var (
 		cli *mongo.Client
 		err error
