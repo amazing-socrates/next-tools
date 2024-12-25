@@ -16,11 +16,11 @@ package a2r
 
 import (
 	"context"
-	"github.com/amazing-socrates/next-tools/checker"
 	"io"
 	"net/http"
 
 	"github.com/amazing-socrates/next-tools/apiresp"
+	"github.com/amazing-socrates/next-tools/checker"
 	"github.com/amazing-socrates/next-tools/errs"
 	"github.com/amazing-socrates/next-tools/utils/jsonutil"
 	"github.com/gin-gonic/gin"
@@ -35,7 +35,7 @@ type Option[A, B any] struct {
 	RespAfter func(*B) error
 }
 
-func Call[A, B, C any](rpc func(client C, ctx context.Context, req *A, options ...grpc.CallOption) (*B, error), client C, c *gin.Context, opts ...*Option[A, B]) {
+func Call[A, B, C any](c *gin.Context, rpc func(client C, ctx context.Context, req *A, options ...grpc.CallOption) (*B, error), client C, opts ...*Option[A, B]) {
 	req, err := ParseRequestNotCheck[A](c)
 	if err != nil {
 		apiresp.GinError(c, err)

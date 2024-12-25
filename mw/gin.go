@@ -15,16 +15,16 @@
 package mw
 
 import (
-	"github.com/amazing-socrates/next-tools/log"
-	"github.com/amazing-socrates/next-tools/tokenverify"
-	"github.com/golang-jwt/jwt/v4"
 	"net/http"
 	"strings"
 
 	"github.com/amazing-socrates/next-protocol/constant"
 	"github.com/amazing-socrates/next-tools/apiresp"
 	"github.com/amazing-socrates/next-tools/errs"
+	"github.com/amazing-socrates/next-tools/log"
+	"github.com/amazing-socrates/next-tools/tokenverify"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // CorsHandler gin cross-domain configuration.
@@ -119,6 +119,6 @@ func CreateToken(userID string, accessSecret string, accessExpire int64, platfor
 }
 
 func GinPanicErr(c *gin.Context, err any) {
-	PanicStackToLog(c, err)
+	log.ZPanic(c, "GinPanicErr panic", errs.ErrPanic(err))
 	c.AbortWithStatus(http.StatusInternalServerError)
 }

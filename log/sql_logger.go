@@ -16,10 +16,10 @@ package log
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 	gormUtils "gorm.io/gorm/utils"

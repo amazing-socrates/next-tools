@@ -7,14 +7,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/amazing-socrates/next-protocol/constant"
 	rotatelogs "github.com/amazing-socrates/next-tools/log/file-rotatelogs"
+	"github.com/amazing-socrates/next-tools/mcontext"
 	"github.com/amazing-socrates/next-tools/utils/stringutil"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/amazing-socrates/next-protocol/constant"
-	"github.com/amazing-socrates/next-tools/mcontext"
 )
 
 type LogFormatter interface {
@@ -127,6 +125,10 @@ func ZWarn(ctx context.Context, msg string, err error, keysAndValues ...any) {
 
 func ZError(ctx context.Context, msg string, err error, keysAndValues ...any) {
 	pkgLogger.Error(ctx, msg, err, keysAndValues...)
+}
+
+func ZPanic(ctx context.Context, msg string, err error, keysAndValues ...any) {
+	pkgLogger.Panic(ctx, msg, err, keysAndValues...)
 }
 
 func CInfo(ctx context.Context, msg string, keysAndValues ...any) {
@@ -414,6 +416,15 @@ func (l *ZapLogger) Error(ctx context.Context, msg string, err error, keysAndVal
 	}
 	keysAndValues = l.kvAppend(ctx, keysAndValues)
 	l.zap.Errorw(msg, keysAndValues...)
+}
+
+func (l *ZapLogger) Panic(ctx context.Context, msg string, err error, keysAndValues ...any) {
+	if l.level > zapcore.PanicLevel {
+		return
+	}
+	keysAndValues = append(keysAndValues, "error", err)
+	keysAndValues = l.kvAppend(ctx, keysAndValues)
+	l.zap.Panicw(msg, keysAndValues...)
 }
 
 func (l *ZapLogger) kvAppend(ctx context.Context, keysAndValues []any) []any {
