@@ -18,10 +18,12 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/amazing-socrates/next-tools/errs"
 	"github.com/go-zookeeper/zk"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -140,7 +142,12 @@ func (s *ZkClient) GetConns(ctx context.Context, serviceName string, opts ...grp
 }
 
 func (s *ZkClient) GetConn(ctx context.Context, serviceName string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	newOpts := append(s.options, grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, s.balancerName)))
+	kaParams := keepalive.ClientParameters{
+		Time:                10 * time.Second, // 多久发送一次 ping
+		Timeout:             30 * time.Second, // 等待 ping 响应的时间
+		PermitWithoutStream: true,             // 没有活动流也发送 ping
+	}
+	newOpts := append(s.options, grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, s.balancerName)), grpc.WithKeepaliveParams(kaParams))
 	s.logger.Debug(context.Background(), "get conn from client", "serviceName", serviceName)
 	return grpc.DialContext(ctx, fmt.Sprintf("%s:///%s", s.scheme, serviceName), append(newOpts, opts...)...)
 }
