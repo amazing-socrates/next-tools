@@ -16,6 +16,7 @@ package mongoutil
 
 import (
 	"context"
+	"crypto/tls"
 	"time"
 
 	"github.com/amazing-socrates/next-tools/db/tx"
@@ -64,12 +65,14 @@ func NewMongoDB(ctx context.Context, config *Config) (*Client, error) {
 	if err := config.ValidateAndSetDefaults(); err != nil {
 		return nil, err
 	}
-
+	tlsc := &tls.Config{
+		InsecureSkipVerify: true,
+	}
 	opts := options.Client().ApplyURI(config.Uri).
 		SetMaxPoolSize(uint64(config.MaxPoolSize)).
 		SetMinPoolSize(uint64(config.MinPoolSize)).
 		SetRetryWrites(config.RetryWrites).
-		SetRetryReads(config.RetryReads)
+		SetRetryReads(config.RetryReads).SetTLSConfig(tlsc)
 
 	var (
 		cli *mongo.Client
