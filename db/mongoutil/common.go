@@ -45,24 +45,31 @@ func buildMongoURI(config *Config, authSource string) string {
 		config.MaxPoolSize,
 	)
 
-	values := url.Values{}
-	values.Add("tls", strconv.FormatBool(config.TLSEnabled))
-
-	if config.TLSEnabled {
-		if config.TlsCAFile != "" {
-			values.Add("tlsCAFile", config.TlsCAFile)
-		}
-		if config.TlsAllowInvalidCertificates {
-			values.Add("tlsAllowInvalidCertificates", strconv.FormatBool(config.TlsAllowInvalidCertificates))
-		}
-	}
-
-	tlsConfig := values.Encode()
-	if tlsConfig != "" {
+	if tlsConfig := getTlsParam(config); tlsConfig != "" {
 		uri += "&" + tlsConfig
 	}
 
 	return uri
+}
+
+func getTlsParam(config *Config) string {
+	if !config.TLSEnabled {
+		return ""
+	}
+
+	values := url.Values{}
+
+	values.Add("tls", strconv.FormatBool(config.TLSEnabled))
+
+	if config.TlsCAFile != "" {
+		values.Add("tlsCAFile", config.TlsCAFile)
+	}
+
+	if config.TlsAllowInvalidCertificates {
+		values.Add("tlsAllowInvalidCertificates", strconv.FormatBool(config.TlsAllowInvalidCertificates))
+	}
+
+	return values.Encode()
 }
 
 // shouldRetry determines whether an error should trigger a retry.
