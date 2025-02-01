@@ -1,3 +1,17 @@
+// Copyright © 2025 OpenIM open source community. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package etcd
 
 import (
@@ -20,6 +34,8 @@ import (
 
 // ZkOption defines a function type for modifying clientv3.Config
 type ZkOption func(*clientv3.Config)
+
+const maxMsgSize = 100 * 1024 * 1024 // 100 MB
 
 // SvcDiscoveryRegistryImpl implementation
 type SvcDiscoveryRegistryImpl struct {
@@ -98,7 +114,11 @@ func (r *SvcDiscoveryRegistryImpl) initializeConnMap() error {
 	r.connMap = make(map[string][]*grpc.ClientConn)
 	for _, kv := range resp.Kvs {
 		prefix, addr := r.splitEndpoint(string(kv.Key))
-		conn, err := grpc.DialContext(context.Background(), addr, append(r.dialOptions, grpc.WithResolvers(r.resolver))...)
+		conn, err := grpc.DialContext(context.Background(), addr,
+			append(r.dialOptions,
+				grpc.WithResolvers(r.resolver),
+				grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(maxMsgSize)),
+				grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMsgSize)))...)
 		if err != nil {
 			continue
 		}
@@ -150,7 +170,11 @@ func (r *SvcDiscoveryRegistryImpl) GetConns(ctx context.Context, serviceName str
 // GetConn returns a single gRPC client connection for a given service name
 func (r *SvcDiscoveryRegistryImpl) GetConn(ctx context.Context, serviceName string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	target := fmt.Sprintf("etcd:///%s/%s", r.rootDirectory, serviceName)
-	return grpc.DialContext(ctx, target, append(append(r.dialOptions, opts...), grpc.WithResolvers(r.resolver))...)
+	return grpc.DialContext(ctx, target,
+		append(append(r.dialOptions, opts...),
+			grpc.WithResolvers(r.resolver),
+			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(maxMsgSize)),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMsgSize)))...)
 }
 
 // GetSelfConnTarget returns the connection target for the current service
