@@ -19,12 +19,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
