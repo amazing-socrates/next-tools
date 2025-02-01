@@ -42,7 +42,6 @@ func Test_connectWithRetry(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// 1. 连接数据库
 	client, err := NewMongoDB(ctx, config)
 	if err != nil {
 		t.Fatalf("连接失败: %v", err)
@@ -50,7 +49,6 @@ func Test_connectWithRetry(t *testing.T) {
 	defer client.db.Client().Disconnect(ctx)
 	t.Log("成功连接到 MongoDB")
 
-	// 2. 获取集合对象
 	collection := client.db.Collection("test_collection")
 	if collection == nil {
 		// 3. 创建集合（可选，MongoDB 会在首次插入时自动创建）
@@ -59,7 +57,6 @@ func Test_connectWithRetry(t *testing.T) {
 		}
 	}
 
-	//4. 写入测试数据
 	testDoc := bson.M{
 		"name":    "test_user",
 		"value":   42,
@@ -67,27 +64,24 @@ func Test_connectWithRetry(t *testing.T) {
 	}
 	insertRes, err := collection.InsertOne(ctx, testDoc)
 	if err != nil {
-		t.Fatalf("插入失败: %v", err)
+		t.Fatalf("insert failed: %v", err)
 	}
-	t.Logf("插入成功，ID: %v", insertRes.InsertedID)
+	t.Logf("insert success，ID: %v", insertRes.InsertedID)
 
-	// 5. 读取测试数据
 	var result bson.M
 	filter := bson.M{"name": "test_user"}
 	err = collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		t.Fatalf("查询失败: %v", err)
+		t.Fatalf("select failed: %v", err)
 	}
-	t.Logf("查询结果: %+v", result)
+	t.Logf("select result: %+v", result)
 
-	// 验证数据一致性
 	if result["value"] != int32(42) {
-		t.Errorf("数据不一致，期望 42，实际 %v", result["value"])
+		t.Errorf("not same，want 42, ext: %v", result["value"])
 	}
 
-	// 6. 清理测试数据（可选）
 	if _, err = collection.DeleteMany(ctx, filter); err != nil {
-		t.Logf("清理失败: %v", err)
+		t.Logf("delete failed: %v", err)
 	}
 }
 
