@@ -16,9 +16,10 @@ package mongoutil
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func Test_connectWithRetry(t *testing.T) {
@@ -28,7 +29,7 @@ func Test_connectWithRetry(t *testing.T) {
 		Username:                    "rw-nextim",
 		Password:                    "LMnd7jKKsd9nndJHBzB",
 		ReplicaSet:                  "rs0",
-		ReadPreference:              ReadPreferencePrimaryPreferred,
+		ReadPreference:              ReadPreferenceSecondaryPreferred,
 		NeedReadPrefMaxStaleness:    true,
 		ReadPrefMaxStaleness:        5 * time.Second,
 		TLSEnabled:                  true,
@@ -60,17 +61,17 @@ func Test_connectWithRetry(t *testing.T) {
 		}
 	}
 
-	// 4. 写入测试数据
-	//testDoc := bson.M{
-	//	"name":    "test_user",
-	//	"value":   42,
-	//	"created": time.Now(),
-	//}
-	//insertRes, err := collection.InsertOne(ctx, testDoc)
-	//if err != nil {
-	//	t.Fatalf("插入失败: %v", err)
-	//}
-	//t.Logf("插入成功，ID: %v", insertRes.InsertedID)
+	//4. 写入测试数据
+	testDoc := bson.M{
+		"name":    "test_user",
+		"value":   42,
+		"created": time.Now(),
+	}
+	insertRes, err := collection.InsertOne(ctx, testDoc)
+	if err != nil {
+		t.Fatalf("插入失败: %v", err)
+	}
+	t.Logf("插入成功，ID: %v", insertRes.InsertedID)
 
 	// 5. 读取测试数据
 	var result bson.M
@@ -86,10 +87,10 @@ func Test_connectWithRetry(t *testing.T) {
 		t.Errorf("数据不一致，期望 42，实际 %v", result["value"])
 	}
 
-	//// 6. 清理测试数据（可选）
-	//if _, err = collection.DeleteMany(ctx, filter); err != nil {
-	//	t.Logf("清理失败: %v", err)
-	//}
+	// 6. 清理测试数据（可选）
+	if _, err = collection.DeleteMany(ctx, filter); err != nil {
+		t.Logf("清理失败: %v", err)
+	}
 }
 
 //func Test_connectWithRetry(t *testing.T) {
