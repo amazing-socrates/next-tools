@@ -63,10 +63,12 @@ func getTlsParam(config *Config) string {
 
 	values := url.Values{}
 
-	values.Add("tls", strconv.FormatBool(config.TLSEnabled))
+	if config.TLSEnabled {
+		values.Add("tls", strconv.FormatBool(config.TLSEnabled))
 
-	if config.TlsAllowInvalidCertificates {
-		values.Add("tlsAllowInvalidCertificates", strconv.FormatBool(config.TlsAllowInvalidCertificates))
+		if config.TlsAllowInvalidCertificates {
+			values.Add("tlsAllowInvalidCertificates", strconv.FormatBool(config.TlsAllowInvalidCertificates))
+		}
 	}
 
 	if config.ReplicaSet != "" {
