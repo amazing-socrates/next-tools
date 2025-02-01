@@ -23,7 +23,6 @@ import (
 	"github.com/amazing-socrates/next-tools/mw/specialerror"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 // ReadPreferenceMode represents the read preference mode.
@@ -42,6 +41,10 @@ const (
 	ReadPreferenceNearest ReadPreferenceMode = "nearest"
 )
 
+func (r ReadPreferenceMode) String() string {
+	return string(r)
+}
+
 func init() {
 	if err := specialerror.AddReplace(mongo.ErrNoDocuments, errs.ErrRecordNotFound); err != nil {
 		panic(err)
@@ -56,6 +59,7 @@ type Config struct {
 	Username                    string
 	Password                    string
 	AuthSource                  string
+	ReplicaSet                  string
 	ReadPreference              ReadPreferenceMode
 	NeedReadPrefMaxStaleness    bool
 	ReadPrefMaxStaleness        time.Duration
@@ -67,53 +71,6 @@ type Config struct {
 	MaxRetry                    int
 	RetryWrites                 bool
 	RetryReads                  bool
-}
-
-func (c *Config) SetReadPreference(opts *options.ClientOptions) *options.ClientOptions {
-	if opts == nil {
-		return opts
-	}
-	switch c.ReadPreference {
-	case ReadPreferencePrimary:
-		readPref := readpref.Primary()
-		opts.SetReadPreference(readPref)
-	case ReadPreferencePrimaryPreferred:
-		readPref := readpref.PrimaryPreferred()
-		if c.NeedReadPrefMaxStaleness {
-			readpref.PrimaryPreferred(
-				readpref.WithMaxStaleness(c.ReadPrefMaxStaleness),
-			)
-		}
-		opts.SetReadPreference(readPref)
-	case ReadPreferenceSecondary:
-		readPref := readpref.Secondary()
-		if c.NeedReadPrefMaxStaleness {
-			readpref.Secondary(
-				readpref.WithMaxStaleness(c.ReadPrefMaxStaleness),
-			)
-		}
-		opts.SetReadPreference(readPref)
-	case ReadPreferenceSecondaryPreferred:
-		readPref := readpref.SecondaryPreferred()
-		if c.NeedReadPrefMaxStaleness {
-			readpref.SecondaryPreferred(
-				readpref.WithMaxStaleness(c.ReadPrefMaxStaleness),
-			)
-		}
-		opts.SetReadPreference(readPref)
-	case ReadPreferenceNearest:
-		readPref := readpref.Nearest()
-		if c.NeedReadPrefMaxStaleness {
-			readpref.Nearest(
-				readpref.WithMaxStaleness(c.ReadPrefMaxStaleness),
-			)
-		}
-		opts.SetReadPreference(readPref)
-	default:
-		readPref := readpref.Primary()
-		opts.SetReadPreference(readPref)
-	}
-	return opts
 }
 
 type Client struct {
@@ -141,7 +98,13 @@ func NewMongoDB(ctx context.Context, config *Config) (*Client, error) {
 		SetRetryWrites(config.RetryWrites).
 		SetRetryReads(config.RetryReads)
 
-	opts = config.SetReadPreference(opts)
+	if config.TLSEnabled && config.TlsCAFile != "" {
+		tlsConfig, err := getCustomTLSConfig(config.TlsCAFile)
+		if err != nil {
+			return nil, err
+		}
+		opts.SetTLSConfig(tlsConfig)
+	}
 
 	var (
 		cli *mongo.Client

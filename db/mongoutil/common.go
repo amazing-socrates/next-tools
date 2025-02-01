@@ -16,8 +16,12 @@ package mongoutil
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -61,15 +65,37 @@ func getTlsParam(config *Config) string {
 
 	values.Add("tls", strconv.FormatBool(config.TLSEnabled))
 
-	if config.TlsCAFile != "" {
-		values.Add("tlsCAFile", config.TlsCAFile)
-	}
-
 	if config.TlsAllowInvalidCertificates {
 		values.Add("tlsAllowInvalidCertificates", strconv.FormatBool(config.TlsAllowInvalidCertificates))
 	}
 
+	if config.ReplicaSet != "" {
+		values.Add("replicaSet", config.ReplicaSet)
+	}
+
+	if config.ReadPreference != "" {
+		values.Add("readPreference", config.ReadPreference.String())
+	}
+
 	return values.Encode()
+}
+
+func getCustomTLSConfig(caFile string) (*tls.Config, error) {
+	tlsConfig := new(tls.Config)
+	certs, err := os.ReadFile(caFile)
+
+	if err != nil {
+		return tlsConfig, err
+	}
+
+	tlsConfig.RootCAs = x509.NewCertPool()
+	ok := tlsConfig.RootCAs.AppendCertsFromPEM(certs)
+
+	if !ok {
+		return tlsConfig, errors.New("Failed parsing pem file")
+	}
+
+	return tlsConfig, nil
 }
 
 // shouldRetry determines whether an error should trigger a retry.
