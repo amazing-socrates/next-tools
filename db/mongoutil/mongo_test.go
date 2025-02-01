@@ -44,16 +44,16 @@ func Test_connectWithRetry(t *testing.T) {
 
 	client, err := NewMongoDB(ctx, config)
 	if err != nil {
-		t.Fatalf("连接失败: %v", err)
+		t.Fatalf("connect failed: %v", err)
 	}
 	defer client.db.Client().Disconnect(ctx)
-	t.Log("成功连接到 MongoDB")
+	t.Log("success connect MongoDB")
 
 	collection := client.db.Collection("test_collection")
 	if collection == nil {
-		// 3. 创建集合（可选，MongoDB 会在首次插入时自动创建）
+
 		if err = client.db.CreateCollection(ctx, "test_collection"); err != nil {
-			t.Logf("集合可能已存在: %v", err) // 忽略已存在错误
+			t.Logf("collect exsit: %v", err) // 忽略已存在错误
 		}
 	}
 
