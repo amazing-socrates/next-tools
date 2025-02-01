@@ -53,7 +53,7 @@ func Test_connectWithRetry(t *testing.T) {
 	if collection == nil {
 
 		if err = client.db.CreateCollection(ctx, "test_collection"); err != nil {
-			t.Logf("collect exsit: %v", err) // 忽略已存在错误
+			t.Logf("collect exsit: %v", err)
 		}
 	}
 
