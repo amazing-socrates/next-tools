@@ -18,30 +18,71 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func Test_connectWithRetry(t *testing.T) {
 	var config = &Config{
-		Address:                     []string{"staging-im.cluster-czw8k2aoeyoa.us-east-2.docdb.amazonaws.com:27017", "staging-im.cluster-ro-czw8k2aoeyoa.us-east-2.docdb.amazonaws.com:27017"},
+		Address:                     []string{"docdb.cluster-czw8k2aoeyoa.us-east-2.docdb.amazonaws.com:27017", "docdb.cluster-ro-czw8k2aoeyoa.us-east-2.docdb.amazonaws.com:27017"},
 		Database:                    "nextim",
 		Username:                    "rw-nextim",
 		Password:                    "LMnd7jKKsd9nndJHBzB",
-		ReadPreference:              "primaryPreferred",
-		NeedReadPrefMaxStaleness:    true,
-		ReadPrefMaxStaleness:        5 * time.Second,
-		TLSEnabled:                  false,
-		TlsCAFile:                   "",
+		ReplicaSet:                  "rs0",
+		ReadPreference:              ReadPreferenceSecondaryPreferred,
+		TLSEnabled:                  true,
+		TlsCAFile:                   "global-bundle.pem",
 		TlsAllowInvalidCertificates: false,
 		MaxPoolSize:                 100,
-		MinPoolSize:                 10,
+		MinPoolSize:                 1,
 		MaxRetry:                    10,
 		RetryWrites:                 false,
 		RetryReads:                  false,
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	client, err := NewMongoDB(ctx, config)
-	t.Logf("%+v", client)
-	t.Logf("%+v", err)
+	if err != nil {
+		t.Fatalf("connect failed: %v", err)
+	}
+	defer client.db.Client().Disconnect(ctx)
+	t.Log("success connect MongoDB")
+
+	collection := client.db.Collection("test_collection")
+	if collection == nil {
+
+		if err = client.db.CreateCollection(ctx, "test_collection"); err != nil {
+			t.Logf("collect exsit: %v", err)
+		}
+	}
+
+	testDoc := bson.M{
+		"name":    "test_user",
+		"value":   42,
+		"created": time.Now(),
+	}
+	insertRes, err := collection.InsertOne(ctx, testDoc)
+	if err != nil {
+		t.Fatalf("insert failed: %v", err)
+	}
+	t.Logf("insert success，ID: %v", insertRes.InsertedID)
+
+	var result bson.M
+	filter := bson.M{"name": "test_user"}
+	err = collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		t.Fatalf("select failed: %v", err)
+	}
+	t.Logf("select result: %+v", result)
+
+	if result["value"] != int32(42) {
+		t.Errorf("not same，want 42, ext: %v", result["value"])
+	}
+
+	if _, err = collection.DeleteMany(ctx, filter); err != nil {
+		t.Logf("delete failed: %v", err)
+	}
 }
 
 //func Test_connectWithRetry(t *testing.T) {
