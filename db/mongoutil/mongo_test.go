@@ -30,8 +30,6 @@ func Test_connectWithRetry(t *testing.T) {
 		Password:                    "LMnd7jKKsd9nndJHBzB",
 		ReplicaSet:                  "rs0",
 		ReadPreference:              ReadPreferenceSecondaryPreferred,
-		NeedReadPrefMaxStaleness:    true,
-		ReadPrefMaxStaleness:        5 * time.Second,
 		TLSEnabled:                  true,
 		TlsCAFile:                   "global-bundle.pem",
 		TlsAllowInvalidCertificates: false,

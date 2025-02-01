@@ -61,8 +61,6 @@ type Config struct {
 	AuthSource                  string
 	ReplicaSet                  string
 	ReadPreference              ReadPreferenceMode
-	NeedReadPrefMaxStaleness    bool
-	ReadPrefMaxStaleness        time.Duration
 	TLSEnabled                  bool
 	TlsCAFile                   string
 	TlsAllowInvalidCertificates bool
