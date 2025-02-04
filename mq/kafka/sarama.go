@@ -27,6 +27,13 @@ func BuildConsumerGroupConfig(conf *Config, initial int64, autoCommitEnable bool
 		kfk.Net.TLS.Config = tls
 		kfk.Net.TLS.Enable = true
 	}
+	if conf.ClientID == "" {
+		kfk.ClientID = conf.ClientID
+	}
+
+	if conf.Metadata.RefreshFrequency != 0 {
+		kfk.Metadata.RefreshFrequency = conf.Metadata.RefreshFrequency
+	}
 	return kfk, nil
 }
 

@@ -14,6 +14,8 @@
 
 package kafka
 
+import "time"
+
 type TLSConfig struct {
 	EnableTLS          bool   `yaml:"enableTLS"`
 	CACrt              string `yaml:"caCrt"`
@@ -24,10 +26,16 @@ type TLSConfig struct {
 }
 
 type Config struct {
-	Username     string    `yaml:"username"`
-	Password     string    `yaml:"password"`
-	ProducerAck  string    `yaml:"producerAck"`
-	CompressType string    `yaml:"compressType"`
-	Addr         []string  `yaml:"addr"`
-	TLS          TLSConfig `yaml:"tls"`
+	Username     string         `yaml:"username"`
+	Password     string         `yaml:"password"`
+	ProducerAck  string         `yaml:"producerAck"`
+	CompressType string         `yaml:"compressType"`
+	Addr         []string       `yaml:"addr"`
+	TLS          TLSConfig      `yaml:"tls"`
+	ClientID     string         `yaml:"clientID"`
+	Metadata     ConfigMetadata `yaml:"metadata"`
+}
+
+type ConfigMetadata struct {
+	RefreshFrequency time.Duration `yaml:"refreshFrequency"`
 }
