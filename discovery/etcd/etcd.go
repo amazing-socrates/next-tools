@@ -240,9 +240,9 @@ func (r *SvcDiscoveryRegistryImpl) keepAliveLease(leaseID clientv3.LeaseID) {
 func (r *SvcDiscoveryRegistryImpl) watchServiceChanges() {
 	watchChan := r.client.Watch(context.Background(), r.rootDirectory, clientv3.WithPrefix())
 	for range watchChan {
-		r.mu.RLock()
+		r.mu.Lock()
 		r.initializeConnMap()
-		r.mu.RUnlock()
+		r.mu.Unlock()
 	}
 }
 
