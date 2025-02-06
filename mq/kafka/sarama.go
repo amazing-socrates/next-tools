@@ -15,7 +15,7 @@ func BuildConsumerGroupConfig(conf *Config, initial int64, autoCommitEnable bool
 	kfk.Consumer.Offsets.Initial = initial
 	kfk.Consumer.Offsets.AutoCommit.Enable = autoCommitEnable
 	kfk.Consumer.Return.Errors = false
-	kfk.Consumer.Group.Session.Timeout = 5 * time.Minute // 与max.poll.interval.ms默认值保持一致
+	kfk.Consumer.Group.Session.Timeout = 5 * time.Minute
 	if conf.Username != "" || conf.Password != "" {
 		kfk.Net.SASL.Enable = true
 		kfk.Net.SASL.User = conf.Username

@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"runtime/debug"
 
 	"github.com/amazing-socrates/next-tools/checker"
 
@@ -114,6 +115,24 @@ func handleError(ctx context.Context, funcName string, req any, err error) error
 	return details.Err()
 }
 
+// RecoveryInterceptor is an interceptor for recovering from panics.
+func RecoveryInterceptor(
+	ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (resp any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.ZError(ctx, fmt.Sprintf("panic recovered: %v", r), nil, "method", info.FullMethod, "stack_trace", string(debug.Stack()))
+
+			err = status.Errorf(codes.Internal, "Internal server error")
+		}
+	}()
+
+	return handler(ctx, req)
+}
+
 func GrpcServer() grpc.ServerOption {
-	return grpc.ChainUnaryInterceptor(RpcServerInterceptor)
+	return grpc.ChainUnaryInterceptor(RpcServerInterceptor, RecoveryInterceptor)
 }
